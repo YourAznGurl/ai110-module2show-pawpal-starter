@@ -7,6 +7,9 @@ from pawpal_system import Owner, Pet, Task, Scheduler
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 st.title("🐾 PawPal+")
 
+# Little icons so priority is easy to scan in the table
+PRIORITY_ICONS = {"high": "🔴 high", "medium": "🟡 medium", "low": "🟢 low"}
+
 # session_state is Streamlit's "memory". This makes the Owner ONE time,
 # then reuses it on every re-run instead of creating a fresh empty one.
 if "owner" not in st.session_state:
@@ -74,26 +77,71 @@ else:
 
 st.divider()
 
+# One Scheduler for the rest of the page (it just reads the owner's data)
+scheduler = Scheduler(owner)
+
+# ---------- Mark a task complete ----------
+st.subheader("Mark a Task Complete")
+
+pending = scheduler.filter_tasks(completed=False)   # only tasks that aren't done yet
+if pending:
+    labels = [f"{t.due_date} {t.time} - {t.pet_name}: {t.description}" for t in pending]
+    choice = st.selectbox("Pick a task", labels)
+
+    if st.button("Mark complete"):
+        task = pending[labels.index(choice)]          # find the task that matches the choice
+        next_task = scheduler.mark_task_complete(task)  # your Scheduler logic (handles repeats)
+        if next_task is not None:
+            st.success(f"Done! Next {task.frequency} {task.description} is set for {next_task.due_date}.")
+        else:
+            st.success("Done!")
+else:
+    st.info("Nothing to complete right now.")
+
+st.divider()
+
 # ---------- Today's schedule ----------
 st.subheader("Today's Schedule")
 
-if st.button("Generate schedule"):
-    scheduler = Scheduler(owner)
-    schedule = scheduler.generate_schedule()   # calls your Scheduler logic
+all_tasks = scheduler.get_all_tasks()
 
-    if schedule:
-        # Turn each Task into a row the table can show
-        rows = [
-            {
-                "Time": task.time,
-                "Pet": task.pet_name,
-                "Task": task.description,
-                "Minutes": task.duration_minutes,
-                "Priority": task.priority,
-                "Repeats": task.frequency,
-            }
-            for task in schedule
-        ]
-        st.table(rows)
+if not all_tasks:
+    st.info("No tasks yet. Add some above.")
+else:
+    # Conflict warnings come first so the owner sees them right away
+    conflicts = scheduler.detect_conflicts()
+    if conflicts:
+        for message in conflicts:
+            st.warning(message + ". Consider moving one of them.")
     else:
-        st.info("No tasks yet. Add some above.")
+        st.success("No scheduling conflicts. You're all set!")
+
+    # Filters: pick a pet and/or a status
+    col_a, col_b = st.columns(2)
+    with col_a:
+        pet_filter = st.selectbox("Show pet", ["All pets"] + [p.name for p in owner.pets])
+    with col_b:
+        status_filter = st.selectbox("Show status", ["All", "Not done", "Done"])
+
+    # Turn the dropdown choices into what filter_tasks expects (None means "don't filter")
+    pet_arg = None if pet_filter == "All pets" else pet_filter
+    status_arg = {"All": None, "Not done": False, "Done": True}[status_filter]
+    shown = scheduler.filter_tasks(pet_name=pet_arg, completed=status_arg)
+
+    st.caption(f"Showing {len(shown)} of {len(all_tasks)} tasks, sorted by date and time.")
+
+    # Turn each Task into a row the table can show
+    rows = [
+        {
+            "Done": "✅" if task.completed else "⬜",
+            "Date": str(task.due_date),
+            "Time": task.time,
+            "Pet": task.pet_name,
+            "Task": task.description,
+            "Minutes": task.duration_minutes,
+            "Priority": PRIORITY_ICONS[task.priority],
+            "Repeats": task.frequency,
+        }
+        for task in shown
+    ]
+    st.table(rows)

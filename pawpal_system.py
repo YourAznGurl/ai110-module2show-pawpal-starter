@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from datetime import date
+from dataclasses import dataclass, field, replace
+from datetime import date, timedelta
 from typing import List
 
 
@@ -18,6 +18,18 @@ class Task:
     def mark_complete(self):
         """Mark this task as done."""
         self.completed = True
+
+    def next_occurrence(self):
+        """Return a new Task for the next day/week, or None if it doesn't repeat."""
+        if self.frequency == "daily":
+            days = 1
+        elif self.frequency == "weekly":
+            days = 7
+        else:
+            return None                # "once" tasks never repeat
+        # replace() makes a copy of this task with a few fields changed.
+        # timedelta(days=1) means "one day", so today + timedelta = tomorrow.
+        return replace(self, due_date=self.due_date + timedelta(days=days), completed=False)
 
 
 @dataclass
@@ -67,22 +79,48 @@ class Scheduler:
         return self.owner.get_all_tasks()
 
     def sort_by_time(self):
-        """(Phase 4) Return tasks in time order."""
-        pass
+        """Return tasks in order: earliest date first, then earliest time."""
+        # sorted() orders a list. The lambda tells it what to sort by:
+        # each task's (date, time). "HH:MM" text sorts correctly as-is.
+        return sorted(self.get_all_tasks(), key=lambda task: (task.due_date, task.time))
 
     def filter_tasks(self, pet_name=None, completed=None):
-        """(Phase 4) Return tasks matching a pet name and/or done status."""
-        pass
+        """Return tasks matching a pet name and/or done status (None = ignore)."""
+        tasks = self.sort_by_time()   # start from the sorted list so results stay in time order
+        if pet_name is not None:
+            tasks = [task for task in tasks if task.pet_name == pet_name]   # keep one pet's tasks
+        if completed is not None:
+            tasks = [task for task in tasks if task.completed == completed]  # keep done or not done
+        return tasks
 
     def detect_conflicts(self):
-        """(Phase 4) Return warnings for tasks at the same time."""
-        pass
+        """Return warning messages for not-done tasks at the exact same date and time."""
+        seen = {}          # remembers the first task found at each (date, time)
+        warnings = []
+        for task in self.get_all_tasks():
+            if task.completed:
+                continue                       # finished tasks can't conflict
+            key = (task.due_date, task.time)
+            if key in seen:
+                other = seen[key]
+                warnings.append(
+                    f"Warning: {task.pet_name}'s {task.description} and "
+                    f"{other.pet_name}'s {other.description} are both at {task.time} on {task.due_date}"
+                )
+            else:
+                seen[key] = task
+        return warnings                        # an empty list means no conflicts
 
     def mark_task_complete(self, task: Task):
-        """(Phase 4 adds recurring) Mark a task complete."""
+        """Mark a task done; if it repeats, add the next one to the same pet."""
         task.mark_complete()
+        next_task = task.next_occurrence()
+        if next_task is not None:
+            for pet in self.owner.pets:
+                if pet.name == task.pet_name:
+                    pet.add_task(next_task)
+        return next_task                       # None if the task doesn't repeat
 
     def generate_schedule(self):
-        """Return all tasks sorted by time, earliest first."""
-        # sorted() puts them in order; the lambda says "sort by each task's time"
-        return sorted(self.get_all_tasks(), key=lambda task: task.time)
+        """Return all tasks sorted by date and time."""
+        return self.sort_by_time()

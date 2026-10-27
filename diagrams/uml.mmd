@@ -9,29 +9,31 @@ classDiagram
         +str pet_name
         +bool completed
         +mark_complete()
+        +next_occurrence() Task
     }
     class Pet {
         +str name
         +str species
-        +list tasks
+        +List~Task~ tasks
         +add_task(task)
-        +get_tasks()
+        +get_tasks() List~Task~
     }
     class Owner {
         +str name
-        +list pets
+        +List~Pet~ pets
         +add_pet(pet)
-        +get_all_tasks()
+        +get_all_tasks() List~Task~
     }
     class Scheduler {
         +Owner owner
-        +get_all_tasks()
-        +sort_by_time()
-        +filter_tasks(pet_name, completed)
-        +detect_conflicts()
-        +mark_task_complete(task)
-        +generate_schedule()
+        +get_all_tasks() List~Task~
+        +sort_by_time() List~Task~
+        +filter_tasks(pet_name, completed) List~Task~
+        +detect_conflicts() List~str~
+        +mark_task_complete(task) Task
+        +generate_schedule() List~Task~
     }
     Owner "1" --> "*" Pet : has
     Pet "1" --> "*" Task : has
     Scheduler --> Owner : manages
+    Scheduler ..> Task : completes and repeats
