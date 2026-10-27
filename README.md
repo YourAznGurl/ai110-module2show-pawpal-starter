@@ -196,9 +196,9 @@ Start the app with `python3 -m streamlit run app.py`.
 
 1. **Enter the owner and add a pet.** Type the owner's name, then add a pet (for example Pika, a dog) with **Add pet**.
 2. **Add tasks.** Choose the pet, then enter a title, time, duration, priority, and how often it repeats (once, daily, or weekly), and click **Add task**.
-3. **View today's schedule.** Tasks appear in a table sorted by date and time, with a priority icon and a done checkbox.
+3. **View today's schedule.** Tasks from every owner appear together in one table sorted by date and time, with an Owner column, a priority icon, and a done checkbox.
 4. **Check for conflicts.** If two not-done tasks are at the same time, a yellow warning names both tasks. Otherwise a green message says there are no conflicts.
-5. **Filter the schedule.** Use **Show pet** and **Show status** to see only one pet's tasks or only done or not-done tasks.
+5. **Filter the schedule.** Use **Show owner**, **Show pet**, and **Show status** to narrow the table to one person, one pet, or only done or not-done tasks.
 6. **Mark a task complete.** Pick a task and click **Mark complete**. If it repeats daily or weekly, a new task is created for the next day or week.
 
 **Key Scheduler behaviors shown:** sorting by time, conflict warnings, filtering by pet and status, and daily or weekly recurrence.
