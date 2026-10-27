@@ -223,3 +223,5 @@ Warning: Mochi's Feeding and Pika's Breakfast are both at 07:30 on 2026-10-27
 ```
 
 **Screenshot or video** *(optional)*: add one here if you like.
+<video src="https://github.com/YourAznGurl/ai110-module2show-pawpal-starter/blob/main/PawPal%2B.mp4">
+</video>
