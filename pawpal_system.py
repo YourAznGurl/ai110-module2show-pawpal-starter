@@ -3,21 +3,21 @@ from datetime import date
 from typing import List
 
 
-@dataclass  # @dataclass auto-writes the boring setup code for a class that just holds data
+@dataclass  # @dataclass auto-writes the setup code for a class that just holds data
 class Task:
     """One care activity, like Breakfast or Bathroom."""
     description: str
-    time: str                          # when it happens, written "HH:MM" like "07:30"
-    duration_minutes: int = 10         # how long it takes
+    time: str                          # "HH:MM" like "07:30"
+    duration_minutes: int = 10
     priority: str = "medium"           # "low", "medium", or "high"
     frequency: str = "once"            # "once", "daily", or "weekly"
-    due_date: date = field(default_factory=date.today)  # defaults to today's date
-    pet_name: str = ""                 # which pet this task is for
-    completed: bool = False            # False until it's done
+    due_date: date = field(default_factory=date.today)
+    pet_name: str = ""                 # filled in automatically when added to a Pet
+    completed: bool = False
 
     def mark_complete(self):
-        # Will set completed to True (and later, make the next daily/weekly task)
-        pass
+        """Mark this task as done."""
+        self.completed = True
 
 
 @dataclass
@@ -28,12 +28,13 @@ class Pet:
     tasks: List[Task] = field(default_factory=list)  # starts as an empty list
 
     def add_task(self, task: Task):
-        # Will add a task to this pet's list
-        pass
+        """Add a task to this pet and tag it with the pet's name."""
+        task.pet_name = self.name
+        self.tasks.append(task)
 
     def get_tasks(self):
-        # Will return this pet's tasks
-        pass
+        """Return this pet's tasks."""
+        return self.tasks
 
 
 class Owner:
@@ -41,15 +42,18 @@ class Owner:
 
     def __init__(self, name: str):
         self.name = name
-        self.pets: List[Pet] = []      # starts as an empty list of pets
+        self.pets: List[Pet] = []
 
     def add_pet(self, pet: Pet):
-        # Will add a pet to this owner
-        pass
+        """Add a pet to this owner."""
+        self.pets.append(pet)
 
     def get_all_tasks(self):
-        # Will collect tasks from every pet into one list
-        pass
+        """Collect tasks from every pet into one list."""
+        all_tasks = []
+        for pet in self.pets:                      # go through each pet
+            all_tasks.extend(pet.get_tasks())      # add that pet's tasks to the big list
+        return all_tasks
 
 
 class Scheduler:
@@ -59,25 +63,26 @@ class Scheduler:
         self.owner = owner
 
     def get_all_tasks(self):
-        # Will ask the owner for every task
-        pass
+        """Ask the owner for every task across all pets."""
+        return self.owner.get_all_tasks()
 
     def sort_by_time(self):
-        # Will return tasks in time order
+        """(Phase 4) Return tasks in time order."""
         pass
 
     def filter_tasks(self, pet_name=None, completed=None):
-        # Will return only tasks matching a pet name and/or done status
+        """(Phase 4) Return tasks matching a pet name and/or done status."""
         pass
 
     def detect_conflicts(self):
-        # Will return warning messages for tasks at the same time
+        """(Phase 4) Return warnings for tasks at the same time."""
         pass
 
     def mark_task_complete(self, task: Task):
-        # Will complete a task and create the next one if it repeats
-        pass
+        """(Phase 4 adds recurring) Mark a task complete."""
+        task.mark_complete()
 
     def generate_schedule(self):
-        # Will build today's sorted schedule
-        pass
+        """Return all tasks sorted by time, earliest first."""
+        # sorted() puts them in order; the lambda says "sort by each task's time"
+        return sorted(self.get_all_tasks(), key=lambda task: task.time)

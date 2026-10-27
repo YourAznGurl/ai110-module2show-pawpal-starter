@@ -15,8 +15,7 @@ Relationships: an Owner has many Pets, a Pet has many Tasks, and the Scheduler w
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+While planning the Scheduler, I realized it needs to know which pet each task belongs to, so it can filter by pet and show the pet's name in the schedule. I added a `pet_name` field to Task. I also added a `due_date` field so recurring tasks can calculate their next date later.
 
 ---
 
