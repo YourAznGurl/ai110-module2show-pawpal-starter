@@ -4,8 +4,14 @@
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+My design has four classes:
+
+- **Task**: one care activity (like "Breakfast" or "Bathroom"). It holds a description, time, duration, priority, frequency (once, daily, weekly), due date, which pet it belongs to, and whether it is completed. It can mark itself complete.
+- **Pet**: holds the pet's name and species plus a list of its tasks. It can add a task and return its tasks.
+- **Owner**: holds the owner's name and a list of pets. It can add a pet and gather every task from all of its pets.
+- **Scheduler**: the "brain". It takes an Owner, collects all tasks across pets, sorts them by time, filters them, detects conflicts, handles recurring tasks, and builds the daily schedule.
+
+Relationships: an Owner has many Pets, a Pet has many Tasks, and the Scheduler works with one Owner.
 
 **b. Design changes**
 
